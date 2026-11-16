@@ -1,4 +1,5 @@
 export const TELEMETRY_INTERVAL_MS = 1000;
+export const SCHEDULE_CLOCK_INTERVAL_MS = 1000;
 
 export const ROUTES = {
   login: "/login",
@@ -7,4 +8,5 @@ export const ROUTES = {
   factory: (factoryId: string) => `/factories/${factoryId}`,
   line: (factoryId: string, lineId: string) =>
     `/factories/${factoryId}/lines/${lineId}`,
+  schedules: "/schedules",
 } as const;

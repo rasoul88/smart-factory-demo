@@ -34,3 +34,24 @@ export const formatRelative = (timestamp: number): string => {
 
   return `${persianNumber.format(Math.round(hours / 24))} روز پیش`;
 };
+
+const persianWeekday = new Intl.DateTimeFormat("fa-IR", { weekday: "long" });
+
+const persianDayMonth = new Intl.DateTimeFormat("fa-IR", {
+  month: "long",
+  day: "numeric",
+});
+
+const persianClock = new Intl.DateTimeFormat("fa-IR", {
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+export const formatWeekdayName = (timestamp: number): string =>
+  persianWeekday.format(new Date(timestamp));
+
+export const formatDayMonth = (timestamp: number): string =>
+  persianDayMonth.format(new Date(timestamp));
+
+export const formatClock = (timestamp: number): string =>
+  persianClock.format(new Date(timestamp));

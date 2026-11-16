@@ -5,6 +5,7 @@ import { Outlet } from "react-router-dom";
 import { Sheet, SheetContent, SheetTitle } from "@components/ui/sheet";
 import { Toaster } from "@components/ui/sonner";
 
+import { useScheduleRunner } from "@hooks/schedule/use-schedule-runner.hook";
 import { useTelemetrySimulation } from "@hooks/simulation/use-telemetry-simulation.hook";
 
 import { AppSidebar } from "./app-sidebar.component";
@@ -12,6 +13,7 @@ import { ShellContext } from "./shell-context";
 
 export const AppShell = () => {
   useTelemetrySimulation();
+  useScheduleRunner();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (

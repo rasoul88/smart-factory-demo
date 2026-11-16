@@ -10,6 +10,7 @@ import DashboardPage from "@pages/dashboard.page";
 import FactoryPage from "@pages/factory.page";
 import LinePage from "@pages/line.page";
 import LoginPage from "@pages/login.page";
+import SchedulesPage from "@pages/schedules.page";
 
 const router = createBrowserRouter([
   {
@@ -24,6 +25,7 @@ const router = createBrowserRouter([
         children: [
           { path: "/", element: <DashboardPage /> },
           { path: "/factories/:factoryId", element: <FactoryPage /> },
+          { path: "/schedules", element: <SchedulesPage /> },
           {
             path: "/factories/:factoryId/lines/:lineId",
             element: <LinePage />,

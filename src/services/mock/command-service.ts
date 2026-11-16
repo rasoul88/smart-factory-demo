@@ -1,4 +1,5 @@
 import { commandStore } from "@store/commands/commands.store";
+import { primaryValue, telemetryStore } from "@store/telemetry/telemetry.store";
 
 import {
   ECommandAction,
@@ -161,4 +162,25 @@ export const applyCommandToState = (
     case EEquipmentKind.Sensor:
       return state;
   }
+};
+
+export const applyCommandToTelemetry = (
+  equipmentId: string,
+  action: ECommandAction,
+  value?: number,
+): void => {
+  const store = telemetryStore.getState();
+  const current = store.states[equipmentId];
+  if (!current) return;
+
+  const next = applyCommandToState(current, action, value);
+  const history = store.history[equipmentId] ?? [];
+
+  telemetryStore.setState({
+    states: { ...store.states, [equipmentId]: next },
+    history: {
+      ...store.history,
+      [equipmentId]: [...history.slice(-59), primaryValue(next)],
+    },
+  });
 };

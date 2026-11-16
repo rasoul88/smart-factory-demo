@@ -7,10 +7,12 @@ import type { IControlContext } from "@components/line/equipment-controls-dispat
 
 import { useCurrentUser } from "@hooks/auth/use-auth.hook";
 
-import { applyCommandToState, sendCommand } from "@services/mock/command-service";
+import {
+  applyCommandToTelemetry,
+  sendCommand,
+} from "@services/mock/command-service";
 
 import { commandStore } from "@store/commands/commands.store";
-import { primaryValue, telemetryStore } from "@store/telemetry/telemetry.store";
 
 import { ECommandAction } from "@dto/command.dto";
 import type { TEquipmentDefinition, TEquipmentState } from "@dto/equipment.dto";
@@ -48,17 +50,7 @@ export const useEquipmentCommand = ({
       value,
       actorName: user?.name ?? "",
       onApply: (appliedAction, appliedValue) => {
-        const current = telemetryStore.getState().states[definition.id];
-        const next = applyCommandToState(current, appliedAction, appliedValue);
-        const history = telemetryStore.getState().history[definition.id] ?? [];
-
-        telemetryStore.setState((store) => ({
-          states: { ...store.states, [definition.id]: next },
-          history: {
-            ...store.history,
-            [definition.id]: [...history.slice(-59), primaryValue(next)],
-          },
-        }));
+        applyCommandToTelemetry(definition.id, appliedAction, appliedValue);
       },
     });
     setSubmitting(false);

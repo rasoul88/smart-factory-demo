@@ -55,6 +55,30 @@ export const AppSidebar = ({ onNavigate }: IAppSidebar) => {
         </svg>
       ),
     },
+    {
+      to: ROUTES.schedules,
+      labelKey: "nav-schedules",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" className="size-4.5">
+          <rect
+            x="3"
+            y="5"
+            width="18"
+            height="16"
+            rx="2"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
+          <path
+            d="M3 10h18M8 3v4M16 3v4"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+          <circle cx="12" cy="15.5" r="1.6" fill="currentColor" />
+        </svg>
+      ),
+    },
   ];
 
   const handleSwitchRole = (role: EUserRole) => {

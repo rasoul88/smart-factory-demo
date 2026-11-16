@@ -6,6 +6,7 @@ import {
   StatusDot,
 } from "@components/common/status-badge.component";
 import { CommandList } from "@components/dashboard/activity-feed.component";
+import { EquipmentSchedules } from "@components/schedule/equipment-schedules.component";
 import {
   Sheet,
   SheetContent,
@@ -215,6 +216,8 @@ const EquipmentSheetBody = ({
           </span>
           <CommandList entries={equipmentLog} maxHeight="13rem" />
         </div>
+
+        <EquipmentSchedules definition={definition} />
 
         <div className="flex items-center justify-between rounded-lg border border-border/50 bg-secondary/20 px-3 py-2 text-[10px] text-muted-foreground">
           <span>{definition.zone}</span>

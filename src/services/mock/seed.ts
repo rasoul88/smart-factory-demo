@@ -886,7 +886,7 @@ export const SEED_LINES: IProductLine[] = [
     factoryId: "fac-steel",
     name: "خط نورد گرم",
     description: "تولید ورق فولادی از تختال با نورد پیوسته",
-    shift: "شیفت A — ۰۶:۰۰ تا ۱۴:۰۰",
+    shift: "شیفت اول — ۰۶:۰۰ تا ۱۴:۰۰",
     plcIds: ["plc-steel-1", "plc-steel-2"],
     equipmentIds: rollingLineEquipment.map((item) => item.id),
     pipes: [
@@ -905,7 +905,7 @@ export const SEED_LINES: IProductLine[] = [
     factoryId: "fac-steel",
     name: "خط ذوب و ریخته‌گری",
     description: "ذوب قراضه در کوره قوس الکتریکی و ریخته‌گری پیوسته",
-    shift: "شیفت B — ۱۴:۰۰ تا ۲۲:۰۰",
+    shift: "شیفت دوم — ۱۴:۰۰ تا ۲۲:۰۰",
     plcIds: ["plc-steel-3"],
     equipmentIds: meltingLineEquipment.map((item) => item.id),
     pipes: [
@@ -922,7 +922,7 @@ export const SEED_LINES: IProductLine[] = [
     factoryId: "fac-petro",
     name: "خط تقطیر",
     description: "تقطیر جز به جز خوراک و تولید محصولات سبک",
-    shift: "شیفت C — ۲۲:۰۰ تا ۰۶:۰۰",
+    shift: "شیفت سوم — ۲۲:۰۰ تا ۰۶:۰۰",
     plcIds: ["plc-petro-1", "plc-petro-2"],
     equipmentIds: distillationLineEquipment.map((item) => item.id),
     pipes: [
@@ -940,7 +940,7 @@ export const SEED_LINES: IProductLine[] = [
     factoryId: "fac-petro",
     name: "خط آبگیری",
     description: "حذف آب از جریان محصول و پایدارسازی مخازن",
-    shift: "شیفت A — ۰۶:۰۰ تا ۱۴:۰۰",
+    shift: "شیفت اول — ۰۶:۰۰ تا ۱۴:۰۰",
     plcIds: ["plc-petro-3"],
     equipmentIds: dewateringLineEquipment.map((item) => item.id),
     pipes: [
@@ -956,7 +956,7 @@ export const SEED_LINES: IProductLine[] = [
     factoryId: "fac-petro",
     name: "خط بارگیری",
     description: "بارگیری محصول نهایی به تانکر و ثبت تناژ",
-    shift: "شیفت B — ۱۴:۰۰ تا ۲۲:۰۰",
+    shift: "شیفت دوم — ۱۴:۰۰ تا ۲۲:۰۰",
     plcIds: ["plc-petro-4"],
     equipmentIds: loadingLineEquipment.map((item) => item.id),
     pipes: [
@@ -972,7 +972,7 @@ export const SEED_LINES: IProductLine[] = [
     factoryId: "fac-food",
     name: "خط بسته‌بندی",
     description: "پرکن و سیل مواد غذایی در بسته‌های تک‌نفره",
-    shift: "شیفت A — ۰۶:۰۰ تا ۱۴:۰۰",
+    shift: "شیفت اول — ۰۶:۰۰ تا ۱۴:۰۰",
     plcIds: ["plc-food-1"],
     equipmentIds: packagingLineEquipment.map((item) => item.id),
     pipes: [
@@ -989,7 +989,7 @@ export const SEED_LINES: IProductLine[] = [
     factoryId: "fac-food",
     name: "خط پخت",
     description: "پخت پیوسته محصول با کنترل دقیق دما و رطوبت",
-    shift: "شیفت B — ۱۴:۰۰ تا ۲۲:۰۰",
+    shift: "شیفت دوم — ۱۴:۰۰ تا ۲۲:۰۰",
     plcIds: ["plc-food-2"],
     equipmentIds: bakingLineEquipment.map((item) => item.id),
     pipes: [
