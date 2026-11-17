@@ -4,7 +4,12 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
+// VITE_BASE_PATH keeps local dev at "/" while letting a static host (GitHub
+// Pages project sites) serve the app from a subdirectory.
+const base = process.env.VITE_BASE_PATH ?? "/";
+
 export default defineConfig({
+  base,
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {

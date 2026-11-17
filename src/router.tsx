@@ -12,28 +12,32 @@ import LinePage from "@pages/line.page";
 import LoginPage from "@pages/login.page";
 import SchedulesPage from "@pages/schedules.page";
 
-const router = createBrowserRouter([
-  {
-    element: <RedirectIfSession />,
-    children: [{ path: "/login", element: <LoginPage /> }],
-  },
-  {
-    element: <RequireSession />,
-    children: [
-      {
-        element: <AppShell />,
-        children: [
-          { path: "/", element: <DashboardPage /> },
-          { path: "/factories/:factoryId", element: <FactoryPage /> },
-          { path: "/schedules", element: <SchedulesPage /> },
-          {
-            path: "/factories/:factoryId/lines/:lineId",
-            element: <LinePage />,
-          },
-        ],
-      },
-    ],
-  },
-]);
+const router = createBrowserRouter(
+  [
+    {
+      element: <RedirectIfSession />,
+      children: [{ path: "/login", element: <LoginPage /> }],
+    },
+    {
+      element: <RequireSession />,
+      children: [
+        {
+          element: <AppShell />,
+          children: [
+            { path: "/", element: <DashboardPage /> },
+            { path: "/factories/:factoryId", element: <FactoryPage /> },
+            { path: "/schedules", element: <SchedulesPage /> },
+            {
+              path: "/factories/:factoryId/lines/:lineId",
+              element: <LinePage />,
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  // Matches vite `base` so routes resolve under a subdirectory deployment.
+  { basename: import.meta.env.BASE_URL.replace(/\/$/, "") || "/" },
+);
 
 export const AppRouter = () => <RouterProvider router={router} />;
