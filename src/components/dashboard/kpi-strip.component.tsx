@@ -83,7 +83,7 @@ export const KpiStrip = ({
             >
               <item.icon className="size-5" />
             </div>
-            <div className="flex min-w-0 flex-col">
+            <div className="flex min-w-0 flex-col items-center">
               <span className="truncate text-[11px] text-muted-foreground">
                 {item.hint}
               </span>

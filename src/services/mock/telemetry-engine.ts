@@ -180,15 +180,23 @@ const stepSensor = (
   state: ISensorState,
   definition: TEquipmentDefinition,
   runningShare: number,
+  stress: number,
 ) => {
   if (definition.kind !== EEquipmentKind.Sensor) return state;
 
   const span = definition.max - definition.min;
   const ambient = sensorAmbient[state.metric];
   const operating = sensorOperating[state.metric];
-  const target =
+  const normalTarget =
     definition.min + span * (ambient + (operating - ambient) * runningShare);
-  const pull = (target - state.value) * 0.05;
+
+  // A fault episode pushes the reading toward the critical band so alarms,
+  // diagnosis and root-cause analysis have signal to work with.
+  const stressTarget =
+    definition.min + (definition.criticalAt - definition.min) * 1.06;
+  const target = normalTarget + (stressTarget - normalTarget) * stress;
+
+  const pull = (target - state.value) * (stress > 0 ? 0.1 : 0.05);
   const activity = 0.3 + runningShare * 0.85;
   const next =
     state.value + noise(span * sensorDrift[state.metric] * activity) + pull;
@@ -200,6 +208,7 @@ export const stepEquipment = (
   definition: TEquipmentDefinition,
   state: TEquipmentState,
   runningShare: number,
+  stress = 0,
 ): TEquipmentState => {
   if (!state.online) return state;
 
@@ -218,7 +227,7 @@ export const stepEquipment = (
       case EEquipmentKind.Conveyor:
         return stepConveyor(state, definition);
       case EEquipmentKind.Sensor:
-        return stepSensor(state, definition, runningShare);
+        return stepSensor(state, definition, runningShare, stress);
     }
   })();
 

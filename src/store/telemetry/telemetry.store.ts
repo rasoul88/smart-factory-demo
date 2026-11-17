@@ -80,6 +80,33 @@ const initialPlcRtt = Object.fromEntries(
   SEED_PLCS.map((plc) => [plc.id, 18 + Math.round(Math.random() * 26)]),
 );
 
+// One sensor at a time runs a drift episode that carries its reading through
+// warning into critical, then back to normal. Episodes are long enough to
+// inspect, diagnose and act on; the quiet gap between them stays short so the
+// demo never looks dead.
+const FAULT_CYCLE_TICKS = 420;
+const FAULT_DURATION_TICKS = 330;
+const FAULT_RAMP_FRACTION = 0.1;
+
+const STORY_SENSORS = ["eq-dist-temp", "eq-rolling-temp", "eq-melting-level"];
+
+const activeFault = (tickCount: number) => {
+  const cycle = Math.floor(tickCount / FAULT_CYCLE_TICKS);
+  const offset = tickCount % FAULT_CYCLE_TICKS;
+  if (offset >= FAULT_DURATION_TICKS) return { id: "", stress: 0 };
+
+  const id = STORY_SENSORS[cycle % STORY_SENSORS.length];
+  const progress = offset / FAULT_DURATION_TICKS;
+  const stress =
+    progress < FAULT_RAMP_FRACTION
+      ? progress / FAULT_RAMP_FRACTION
+      : progress > 1 - FAULT_RAMP_FRACTION
+        ? (1 - progress) / FAULT_RAMP_FRACTION
+        : 1;
+
+  return { id, stress: Math.max(0, Math.min(1, stress)) };
+};
+
 export const telemetryStore = createStore<ITelemetryStore>()((set) => ({
   states: initialState,
   history: initialHistory,
@@ -112,12 +139,15 @@ export const telemetryStore = createStore<ITelemetryStore>()((set) => ({
         }),
       );
 
+      const fault = activeFault(store.tickCount);
+
       SEED_EQUIPMENT.forEach((definition) => {
         const current = store.states[definition.id];
         const runningShare = current.online
           ? (runningShareByLine[definition.lineId] ?? 0)
           : 0;
-        const next = stepEquipment(definition, current, runningShare);
+        const stress = definition.id === fault.id ? fault.stress : 0;
+        const next = stepEquipment(definition, current, runningShare, stress);
         states[definition.id] = next;
 
         const samples = store.history[definition.id] ?? [];

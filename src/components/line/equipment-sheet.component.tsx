@@ -1,5 +1,8 @@
+import { ScanSearch } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { DiagnosisCard } from "@components/ai/diagnosis-card.component";
+import { RootCauseCard } from "@components/ai/root-cause-card.component";
 import { EquipmentIcon } from "@components/common/equipment-icon.component";
 import {
   StatusBadge,
@@ -14,12 +17,18 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@components/ui/sheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 
 import { useCurrentUser } from "@hooks/auth/use-auth.hook";
 import { useEquipmentCommand } from "@hooks/equipment/use-equipment-command.hook";
 import { useEquipmentHistory } from "@hooks/telemetry/use-equipment-live.hook";
 
+import { diagnoseEquipment } from "@services/ai/diagnose";
+import { analyzeEquipmentRootCause } from "@services/ai/root-cause";
+import { SEED_LINES } from "@services/mock/seed";
+
 import { commandStore } from "@store/commands/commands.store";
+import { EQUIPMENT_BY_LINE } from "@store/telemetry/telemetry.model";
 import { PLC_BY_ID } from "@store/telemetry/telemetry.model";
 import { telemetryStore } from "@store/telemetry/telemetry.store";
 
@@ -110,6 +119,22 @@ const EquipmentSheetBody = ({
     disabled,
   });
 
+  const diagnosis = diagnoseEquipment({
+    definition,
+    state,
+    history,
+    plcStatus: plcState,
+    commands: log,
+  });
+
+  const line = SEED_LINES.find((item) => item.id === definition.lineId);
+  const rootCause = analyzeEquipmentRootCause({
+    equipmentId: definition.id,
+    definitions: EQUIPMENT_BY_LINE[definition.lineId] ?? [],
+    states,
+    pipes: line?.pipes ?? [],
+  });
+
   const readouts = state ? equipmentReadouts(definition, state) : [];
   const trendReadout = readouts.find(
     (readout) => readout.labelKey === primaryMetricKey(definition),
@@ -142,91 +167,129 @@ const EquipmentSheetBody = ({
               </SheetDescription>
             </div>
           </div>
-          <StatusBadge status={status} />
+          <StatusBadge status={status} className="me-9" />
         </div>
       </SheetHeader>
 
-      <div className="flex flex-col gap-5 p-5">
-        {readOnly && <ReadonlyNotice />}
-        {plcOffline && <OfflineNotice />}
-
-        {!plcOffline && state && state.kind !== EEquipmentKind.Sensor && (
-          <EquipmentControls state={state} context={controlContext} />
-        )}
-
-        <div className="grid grid-cols-2 gap-2">
-          {readouts.map((readout) => (
-            <div
-              key={readout.labelKey}
-              className="flex flex-col gap-1 rounded-lg border border-border/50 bg-secondary/25 px-3 py-2"
-            >
-              <span className="text-[10px] text-muted-foreground">
-                {t(readout.labelKey)}
-              </span>
-              <span className="num text-sm font-semibold text-foreground">
-                {readout.value}
-                {readout.unit && (
-                  <span className="ms-1.5 text-[10px] font-normal text-muted-foreground">
-                    {readout.unit}
-                  </span>
+      <Tabs defaultValue="overview" className="flex flex-col gap-4 p-5">
+        <TabsList className="w-full">
+          <TabsTrigger value="overview" className="flex-1">
+            {t("ai-tab-overview")}
+          </TabsTrigger>
+          <TabsTrigger value="troubleshoot" className="flex-1 gap-1.5">
+            <ScanSearch className="size-3.5" />
+            {t("ai-tab-troubleshoot")}
+            {!diagnosis.healthy && (
+              <span
+                className={cn(
+                  "size-1.5 rounded-full",
+                  diagnosis.severity === "critical"
+                    ? "bg-status-fault"
+                    : "bg-status-warning",
                 )}
-              </span>
-            </div>
-          ))}
-        </div>
+              />
+            )}
+          </TabsTrigger>
+        </TabsList>
 
-        {definition.kind === EEquipmentKind.Sensor && state && (
-          <div className="flex flex-col gap-1.5 rounded-lg border border-border/50 bg-secondary/20 px-3 py-2.5">
-            <span className="text-[10px] text-muted-foreground">
-              {t(metricLabelKey(definition.metric))}
-            </span>
-            <div className="num flex items-center justify-between gap-1 text-[10px]">
-              <span className="text-status-running">
-                &lt; {formatNumber(definition.warningAt)} {definition.unit}
-              </span>
-              <span className="text-status-warning">
-                ≥ {formatNumber(definition.warningAt)} {definition.unit}
-              </span>
-              <span className="text-status-fault">
-                ≥ {formatNumber(definition.criticalAt)} {definition.unit}
-              </span>
-            </div>
+        <TabsContent value="overview" className="flex flex-col gap-5">
+          {readOnly && <ReadonlyNotice />}
+          {plcOffline && <OfflineNotice />}
+
+          {!plcOffline && state && state.kind !== EEquipmentKind.Sensor && (
+            <EquipmentControls state={state} context={controlContext} />
+          )}
+
+          <div className="grid grid-cols-2 gap-2">
+            {readouts.map((readout) => (
+              <div
+                key={readout.labelKey}
+                className="flex flex-col gap-1 rounded-lg border border-border/50 bg-secondary/25 px-3 py-2"
+              >
+                <span className="text-[10px] text-muted-foreground">
+                  {t(readout.labelKey)}
+                </span>
+                <span className="num text-sm font-semibold text-foreground">
+                  {readout.value}
+                  {readout.unit && (
+                    <span className="ms-1.5 text-[10px] font-normal text-muted-foreground">
+                      {readout.unit}
+                    </span>
+                  )}
+                </span>
+              </div>
+            ))}
           </div>
-        )}
 
-        <EquipmentTrend
-          samples={history}
-          label={t(primaryMetricKey(definition))}
-          unit={
-            definition.kind === EEquipmentKind.Sensor
-              ? definition.unit
-              : (trendReadout?.unit ?? "")
-          }
-        />
+          {definition.kind === EEquipmentKind.Sensor && state && (
+            <div className="flex flex-col gap-1.5 rounded-lg border border-border/50 bg-secondary/20 px-3 py-2.5">
+              <span className="text-[10px] text-muted-foreground">
+                {t(metricLabelKey(definition.metric))}
+              </span>
+              <div className="num flex items-center justify-between gap-1 text-[10px]">
+                <span className="text-status-running">
+                  &lt; {formatNumber(definition.warningAt)} {definition.unit}
+                </span>
+                <span className="text-status-warning">
+                  ≥ {formatNumber(definition.warningAt)} {definition.unit}
+                </span>
+                <span className="text-status-fault">
+                  ≥ {formatNumber(definition.criticalAt)} {definition.unit}
+                </span>
+              </div>
+            </div>
+          )}
 
-        <EquipmentPlcFooter
-          plcName={plc?.name ?? "-"}
-          plcStatus={plcStatusVisual(plcState)}
-          updatedAt={state?.updatedAt}
-        />
+          <EquipmentTrend
+            samples={history}
+            label={t(primaryMetricKey(definition))}
+            unit={
+              definition.kind === EEquipmentKind.Sensor
+                ? definition.unit
+                : (trendReadout?.unit ?? "")
+            }
+          />
 
-        <div className="flex flex-col gap-2">
-          <span className="text-[11px] font-medium text-muted-foreground">
-            {t("equipment-history")}
-          </span>
-          <CommandList entries={equipmentLog} maxHeight="13rem" />
-        </div>
+          <EquipmentPlcFooter
+            plcName={plc?.name ?? "-"}
+            plcStatus={plcStatusVisual(plcState)}
+            updatedAt={state?.updatedAt}
+          />
 
-        <EquipmentSchedules definition={definition} />
+          <div className="flex flex-col gap-2">
+            <span className="text-[11px] font-medium text-muted-foreground">
+              {t("equipment-history")}
+            </span>
+            <CommandList entries={equipmentLog} maxHeight="13rem" />
+          </div>
 
-        <div className="flex items-center justify-between rounded-lg border border-border/50 bg-secondary/20 px-3 py-2 text-[10px] text-muted-foreground">
-          <span>{definition.zone}</span>
-          <span className="flex items-center gap-1.5">
-            <StatusDot status={status} pulse={false} />
-            {plc?.rack}
-          </span>
-        </div>
-      </div>
+          <EquipmentSchedules definition={definition} />
+
+          <div className="flex items-center justify-between rounded-lg border border-border/50 bg-secondary/20 px-3 py-2 text-[10px] text-muted-foreground">
+            <span>{definition.zone}</span>
+            <span className="flex items-center gap-1.5">
+              <StatusDot status={status} pulse={false} />
+              {plc?.rack}
+            </span>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="troubleshoot" className="flex flex-col gap-3">
+          <DiagnosisCard diagnosis={diagnosis} />
+          <RootCauseCard
+            rootCause={rootCause}
+            canManage={!readOnly}
+            isPending={controlContext.isPending}
+            onApplyRemedy={(remedy) => {
+              if (!remedy.command) return;
+              controlContext.onCommand(
+                remedy.command.action,
+                remedy.command.value,
+              );
+            }}
+          />
+        </TabsContent>
+      </Tabs>
     </>
   );
 };

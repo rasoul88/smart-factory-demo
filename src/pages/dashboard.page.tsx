@@ -1,10 +1,17 @@
+import { useState } from "react";
+
+import { ClipboardList } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { ShiftReportCard } from "@components/ai/shift-report-card.component";
 import { PageLayout } from "@components/common/page-layout.component";
 import { LiveBadge } from "@components/common/status-badge.component";
 import { ActivityFeed } from "@components/dashboard/activity-feed.component";
 import { FactoryCard } from "@components/dashboard/factory-card.component";
 import { KpiStrip } from "@components/dashboard/kpi-strip.component";
+import { Button } from "@components/ui/button";
+
+import { useShiftReport } from "@hooks/ai/use-shift-report.hook";
 
 import { SEED_FACTORIES, SEED_LINES, SEED_PLCS } from "@services/mock/seed";
 
@@ -21,6 +28,9 @@ import { useShallowStore } from "@utils/hooks/use-shallow-store";
 
 export default function DashboardPage() {
   const { t } = useTranslation();
+  const shiftReport = useShiftReport();
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportGeneratedAt, setReportGeneratedAt] = useState<number>();
   const { states, plcStatus } = useShallowStore(telemetryStore, [
     "states",
     "plcStatus",
@@ -57,7 +67,23 @@ export default function DashboardPage() {
       subtitle={t("dashboard-subtitle")}
       actions={
         <div className="flex items-center justify-between gap-3">
-          <LiveBadge />
+          <div className="flex items-center gap-2">
+            <LiveBadge />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setReportOpen((open) => {
+                  const next = !open;
+                  if (next) setReportGeneratedAt(Date.now());
+                  return next;
+                });
+              }}
+            >
+              <ClipboardList data-icon="inline-start" />
+              {t("ai-report-open")}
+            </Button>
+          </div>
           <span className="text-[11px] text-muted-foreground">
             {t("dashboard-updated")} — {t("kpi-alarms")}:{" "}
             <span className="num text-foreground">{alarmCount}</span>
@@ -65,6 +91,10 @@ export default function DashboardPage() {
         </div>
       }
     >
+      {reportOpen && (
+        <ShiftReportCard report={shiftReport} generatedAt={reportGeneratedAt} />
+      )}
+
       <KpiStrip
         factoryCount={SEED_FACTORIES.length}
         activeLineCount={activeLineCount}
