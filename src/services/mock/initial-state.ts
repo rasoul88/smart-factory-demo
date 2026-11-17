@@ -1,9 +1,12 @@
 import {
   EEquipmentKind,
   ESensorMetric,
+  type ISensorDefinition,
   type TEquipmentDefinition,
   type TEquipmentState,
 } from "@dto/equipment.dto";
+
+import { isPinnedFault } from "./pinned-faults";
 
 export const createInitialState = (
   definition: TEquipmentDefinition,
@@ -68,20 +71,19 @@ export const createInitialState = (
         ...base,
         kind: EEquipmentKind.Sensor,
         metric: definition.metric,
-        value: initialSensorValue(
-          definition.metric,
-          definition.min,
-          definition.max,
-        ),
+        value: initialSensorValue(definition),
       };
   }
 };
 
-const initialSensorValue = (
-  metric: ESensorMetric,
-  min: number,
-  max: number,
-): number => {
+const initialSensorValue = (definition: ISensorDefinition): number => {
+  // Pinned sensors start inside their alarm band so the demo is immediately
+  // interesting and never shows a healthy value on first paint.
+  if (isPinnedFault(definition.id)) {
+    return Math.round((definition.warningAt + definition.criticalAt) / 2);
+  }
+
+  const { metric, min, max } = definition;
   const span = max - min;
 
   switch (metric) {

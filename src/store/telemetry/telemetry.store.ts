@@ -1,6 +1,7 @@
 import { createStore } from "zustand";
 
 import { createInitialState } from "@services/mock/initial-state";
+import { pinnedStressAt } from "@services/mock/pinned-faults";
 import { SEED_EQUIPMENT, SEED_PLCS } from "@services/mock/seed";
 import { stepEquipment } from "@services/mock/telemetry-engine";
 
@@ -146,7 +147,10 @@ export const telemetryStore = createStore<ITelemetryStore>()((set) => ({
         const runningShare = current.online
           ? (runningShareByLine[definition.lineId] ?? 0)
           : 0;
-        const stress = definition.id === fault.id ? fault.stress : 0;
+        // A pinned sensor is always stressed; otherwise the rotating episode wins.
+        const pinned = pinnedStressAt(definition.id, store.tickCount);
+        const stress =
+          pinned > 0 ? pinned : definition.id === fault.id ? fault.stress : 0;
         const next = stepEquipment(definition, current, runningShare, stress);
         states[definition.id] = next;
 
